@@ -1,5 +1,9 @@
 # 🍳 Recipe Chatbot
 
+🚫 This project is for Reading only.  
+❗ Cloning, copying, or using any part of the code without permission is not allowed.
+
+
 A conversational recipe assistant built using the MERN stack and powered by Generative AI via the Gemini API.
 
 ---
