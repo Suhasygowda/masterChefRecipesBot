@@ -30,8 +30,8 @@ This project is a chatbot web application that helps users find, generate, and d
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/<your-username>/<your-repo>.git
-cd <your-repo>
+git clone https://github.com/Suhasygowda/masterChefRecipesBot.git
+cd https://github.com/Suhasygowda/masterChefRecipesBot.git
 ```
 
 ### 2. Set Up Backend
