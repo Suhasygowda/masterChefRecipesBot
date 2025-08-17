@@ -1,4 +1,3 @@
-
 // src/pages/AnonymousChat.js
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
@@ -17,6 +16,7 @@ export default function AnonymousChat() {
     }
   ]);
   const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const messagesEndRef = useRef(null);
 
@@ -29,13 +29,14 @@ export default function AnonymousChat() {
 
   // Function to send a message
   const sendMessage = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || isLoading) return;
 
     const userMessage = { role: 'user', text: input.trim() };
     setMessages((prev) => [...prev, userMessage]);
 
     const newMessages = [...messages, userMessage];
     setInput('');
+    setIsLoading(true);
 
     try {
       // Example API call to the anonymous chat endpoint
@@ -52,6 +53,8 @@ export default function AnonymousChat() {
         ...prev,
         { role: 'assistant', text: 'Unable to get a response at the moment.' }
       ]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -70,8 +73,15 @@ export default function AnonymousChat() {
 
       {/* Top bar with login/register buttons */}
       <div className="anon-topbar">
-        <Link to="/login" className="topbar-btn">Login</Link>
-        <Link to="/register" className="topbar-btn">Register</Link>
+        <div className="topbar-content">
+          <div className="topbar-title">
+            <span className="chat-title">Recipe Assistant</span>
+          </div>
+          <div className="topbar-actions">
+            <Link to="/login" className="topbar-btn">Login</Link>
+            <Link to="/register" className="topbar-btn">Register</Link>
+          </div>
+        </div>
       </div>
 
       {/* Chat Container */}
@@ -97,21 +107,48 @@ export default function AnonymousChat() {
               </div>
             </div>
           ))}
+          
+          {/* Loading indicator */}
+          {isLoading && (
+            <div className="anon-message anon-assistant">
+              <div className="anon-avatar">
+                <img src="./bot-avatar.png" alt="Bot" />
+              </div>
+              <div className="anon-bubble loading-bubble">
+                <div className="typing-indicator">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <div ref={messagesEndRef} />
         </div>
 
         <div className="anon-input-container">
-          <textarea
-            className="anon-input"
-            rows={2}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Type your question..."
-          />
-          <button className="anon-send-btn" onClick={sendMessage}>
-            Send
-          </button>
+          <div className="input-wrapper">
+            <textarea
+              className="anon-input"
+              rows={1}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Type your question..."
+              disabled={isLoading}
+            />
+            <button 
+              className={`anon-send-btn ${!input.trim() || isLoading ? 'disabled' : ''}`}
+              onClick={sendMessage}
+              disabled={!input.trim() || isLoading}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22,2 15,22 11,13 2,9 22,2"></polygon>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </div>

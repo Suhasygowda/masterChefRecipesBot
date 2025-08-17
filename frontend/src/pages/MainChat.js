@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
@@ -13,6 +12,7 @@ export default function MainChat() {
   const [messages, setMessages] = useState([]); // Stores the chat messages
   const [input, setInput] = useState(''); // Stores the message input
   const [clickTimeout, setClickTimeout] = useState(null); // Timer for single vs double-click logic
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mobile sidebar state
   const doubleClickDelay = 250; // Time in milliseconds to distinguish single and double-click
 
   // For inline chat title editing
@@ -21,6 +21,7 @@ export default function MainChat() {
 
   const navigate = useNavigate();
   const messagesEndRef = useRef(null);
+  const sidebarRef = useRef(null);
 
   // Check if user is logged in by verifying token
   useEffect(() => {
@@ -58,6 +59,7 @@ export default function MainChat() {
       setMessages(res.data.messages);
       setSelectedChatId(chatId);
       setEditingChatId(null); // Exit editing mode
+      setIsSidebarOpen(false); // Close sidebar on mobile after selecting chat
     } catch (error) {
       console.error(error);
       alert('Error loading chat.');
@@ -179,14 +181,64 @@ export default function MainChat() {
     }
   };
 
+  // Mobile sidebar toggle
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  // Close sidebar when clicking outside on mobile
+  const handleOverlayClick = () => {
+    setIsSidebarOpen(false);
+  };
+
+  // Handle resize to close sidebar on desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 768) {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Auto-resize textarea
+  const handleInputChange = (e) => {
+    setInput(e.target.value);
+    
+    // Auto-resize textarea
+    const textarea = e.target;
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+  };
+
   return (
     <div className="mainchat-container">
       {/* Global Header */}
       <Header />
 
       <div className="mainchat-content">
+        {/* Mobile Menu Toggle Button */}
+        <button 
+          className="mobile-menu-toggle" 
+          onClick={toggleSidebar}
+          aria-label="Toggle menu"
+        >
+          ☰
+        </button>
+
+        {/* Mobile Overlay */}
+        <div 
+          className={`mobile-overlay ${isSidebarOpen ? 'show' : ''}`}
+          onClick={handleOverlayClick}
+        />
+
         {/* Sidebar */}
-        <div className="sidebar">
+        <div 
+          ref={sidebarRef}
+          className={`sidebar ${isSidebarOpen ? 'open' : ''}`}
+        >
           <div className="sidebar-header">
             <h2>Recipes</h2>
             <button className="sidebar-btn" onClick={handleLogout}>
@@ -272,11 +324,12 @@ export default function MainChat() {
               <div className="chat-input-container">
                 <textarea
                   className="chat-input"
-                  rows={2}
+                  rows={1}
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  onChange={handleInputChange}
                   onKeyPress={handleKeyPress}
                   placeholder="Type your message..."
+                  style={{ minHeight: '40px', maxHeight: '120px' }}
                 />
                 <button className="chat-send-btn" onClick={handleSendMessage}>
                   Send
